@@ -43,7 +43,7 @@ selected_option = st.sidebar.radio("Choose a section:", options)
 if selected_option == "Home":
     st.title("Welcome to Tomato Retail Analytics")
     st.write("This app provides an interactive way to explore and analyze retail data for tomato sales.")
-    st.image("/home/oem/tomato-retail-analytics/tomatoes image.jpg", caption="Tomato Analytics", use_container_width=True)
+    st.image("tomatoes image.jpg", caption="Tomato Analytics", use_container_width=True)
     st.write("Navigate through the sections to discover insights about trends, supplier performance, location-based analysis, and more.")
 
 # Trend Analysis Section
