@@ -98,7 +98,7 @@ elif selected_option == "Market Forecast/Stock Tracking":
         st.write("Train a model to predict the price of products based on key features.")
 
         # Define features and target
-        features = ['Restocked Quantity (kg)', 'Transport Cost (NGN)', 'Total Sales Value (NGN)']
+        features = ['Restocked Quantity (kg)', 'Transport Cost (NGN)', 'Total Sales Value (NGN)', 'Supplier Cost (NGN)', 'Profit', 'Season_Rainy Season']
         target = 'Unit Price (NGN)'
 
         if all(feature in data.columns for feature in features):
@@ -121,12 +121,19 @@ elif selected_option == "Market Forecast/Stock Tracking":
             restocked_quantity = st.number_input("Enter Restocked Quantity (kg):", min_value=0.0, value=0.0)
             transport_cost = st.number_input("Enter Transport Cost (NGN):", min_value=0.0, value=0.0)
             total_sales_value = st.number_input("Enter Total Sales Value (NGN):", min_value=0.0, value=0.0)
+            supplier_cost = st.number_input("Enter Supplier Cost (NGN):", min_value=0.0, value=0.0)
+            profit = st.number_input("Enter Profit (NGN):", min_value=0.0, value=0.0)
+            season_rainy = st.selectbox("Is it Rainy Season?", options=["No", "Yes"])
+            season_rainy = 1 if season_rainy == "Yes" else 0
 
             if st.button("Predict Price"):
                 user_input = pd.DataFrame({
                     'Restocked Quantity (kg)': [restocked_quantity],
                     'Transport Cost (NGN)': [transport_cost],
-                    'Total Sales Value (NGN)': [total_sales_value]
+                    'Total Sales Value (NGN)': [total_sales_value],
+                    'Supplier Cost (NGN)': [supplier_cost],
+                    'Profit': [profit],
+                    'Season_Rainy Season': [season_rainy]
                 })
                 prediction = model.predict(user_input)[0]
                 st.write(f"**Predicted Unit Price (NGN): {prediction:.2f}**")
