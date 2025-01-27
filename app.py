@@ -16,7 +16,7 @@ def load_data():
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file, parse_dates=['Date'], index_col='Date')
-            required_columns = ['Supplier Cost (NGN)', 'Restocked Quantity (kg)', 'Transport Cost (NGN)', 'Total Sales Value (NGN)']
+            required_columns = ['Supplier Cost (NGN)', 'Restocked Quantity (kg)', 'Transport Cost (NGN)', 'Total Sales Value (NGN)', 'Unit Price (NGN)']
             for col in required_columns:
                 if col not in df.columns:
                     raise ValueError(f"Column '{col}' is missing from the dataset.")
@@ -90,17 +90,48 @@ elif selected_option == "Business Analytics":
 
 # Market Forecast/Stock Tracking Section
 elif selected_option == "Market Forecast/Stock Tracking":
-    sub_options = ["Price Strategy Recommendation", "Stock Forecast & Tracking"]
+    sub_options = ["Price Prediction", "Stock Forecast & Tracking"]
     selected_sub_option = st.sidebar.selectbox("Select Forecast Type:", sub_options)
 
-    if selected_sub_option == "Price Strategy Recommendation" and data is not None:
-        st.title("Price Strategy Recommendation")
-        st.write("Explore correlations between key numeric variables to inform pricing strategies.")
-        numeric_data = data.select_dtypes(include=['float64', 'int64'])
-        st.write("**Correlation Heatmap**")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(numeric_data.corr(), annot=True, cmap='coolwarm', linewidths=0.5, ax=ax)
-        st.pyplot(fig)
+    if selected_sub_option == "Price Prediction" and data is not None:
+        st.title("Price Prediction")
+        st.write("Train a model to predict the price of products based on key features.")
+
+        # Define features and target
+        features = ['Restocked Quantity (kg)', 'Transport Cost (NGN)', 'Total Sales Value (NGN)']
+        target = 'Unit Price (NGN)'
+
+        if all(feature in data.columns for feature in features):
+            X = data[features]
+            y = data[target]
+
+            # Split data and train model
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            model = RandomForestRegressor(random_state=42)
+            model.fit(X_train, y_train)
+
+            # Evaluate model
+            y_pred = model.predict(X_test)
+            mse = mean_squared_error(y_test, y_pred)
+            rmse = mse ** 0.5
+            st.write(f"**Model Performance (Lower is Better): RMSE = {rmse:.2f}**")
+
+            # User input for prediction
+            st.write("### Predict Unit Price")
+            restocked_quantity = st.number_input("Enter Restocked Quantity (kg):", min_value=0.0, value=0.0)
+            transport_cost = st.number_input("Enter Transport Cost (NGN):", min_value=0.0, value=0.0)
+            total_sales_value = st.number_input("Enter Total Sales Value (NGN):", min_value=0.0, value=0.0)
+
+            if st.button("Predict Price"):
+                user_input = pd.DataFrame({
+                    'Restocked Quantity (kg)': [restocked_quantity],
+                    'Transport Cost (NGN)': [transport_cost],
+                    'Total Sales Value (NGN)': [total_sales_value]
+                })
+                prediction = model.predict(user_input)[0]
+                st.write(f"**Predicted Unit Price (NGN): {prediction:.2f}**")
+        else:
+            st.warning("Required features are missing in the dataset for prediction.")
 
     elif selected_sub_option == "Stock Forecast & Tracking" and data is not None:
         st.title("Stock Forecast & Tracking")
@@ -124,7 +155,7 @@ elif selected_option == "Market Forecast/Stock Tracking":
             y_pred = model.predict(X_test)
             mse = mean_squared_error(y_test, y_pred)
             rmse = mse ** 0.5
-            st.write(f"**Error Margin (Lower is Better):** {rmse:.2f}")
+            st.write(f"**Model Accuracy (Lower is Better): {rmse:.2f}**")
 
             # Prediction for selected date
             if not data.empty:
